@@ -1,0 +1,27 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+form {
+  display: inline-block;
+}
+
+.image-container {
+  margin-top: 20px;
+}
+
+.image-container img {
+  max-width: 400px;
+  height: auto;
+}
+
+.caption-container {
+  margin-top: 20px;
+}
+
+.caption-container p {
+  font-size: 1.2em;
+  font-weight: bold;
+}
