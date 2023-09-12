@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Captioning</title>
+    <style>
+      body {
+        margin: 0px;
+        height: 100vh;
+        background: #1283da;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+      h1 {
+        color: #ffffff;
+        margin-bottom: 20px;
+      }
+      .form-input {
+        width: 350px;
+        padding: 20px;
+        background: #ffffff;
+        box-shadow: -3px -3px 7px rgba(94, 104, 121, 0.377),
+          3px 3px 7px rgba(94, 104, 121, 0.377);
+      }
+      .preview img {
+        width: 100%;
+        display: none;
+        margin-bottom: 20px;
+        border: 1px solid #dddddd;
+      }
+      label {
+        display: block;
+        width: 100%;
+        height: 45px;
+        line-height: 45px;
+        text-align: center;
+        background: #1172c2;
+        color: #ffffff;
+        font-size: 15px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      input[type="file"] {
+        display: none;
+      }
+      #captions {
+        display: none;
+        margin-top: 20px;
+        text-align: center;
+      }
+      #loading {
+        display: none;
+        margin-top: 20px;
+        text-align: center;
+      }
+      .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 2s linear infinite;
+      }
+      .generate-button {
+        display: block;
+        width: 100%;
+        height: 45px;
+        line-height: 45px;
+        text-align: center;
+        background: #1172c2;
+        color: #ffffff;
+        font-size: 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      .show-captions-button {
+        display: none;
+        width: 100%;
+        height: 45px;
+        line-height: 45px;
+        text-align: center;
+        background: #1172c2;
+        color: #ffffff;
+        font-size: 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      .caption-text {
+        margin-top: 20px;
+        font-size: 18px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script>
+      function showPreview(event) {
+        if (event.target.files.length > 0) {
+          var src = URL.createObjectURL(event.target.files[0]);
+          var preview = document.querySelector(".preview img");
+          preview.src = src;
+          preview.style.display = "block";
+          document.querySelector(".show-captions-button").style.display =
+            "none";
+        }
+      }
+
+      function generateCaptions(event) {
+        event.preventDefault();
+        var form = document.getElementById("upload-form");
+        var formData = new FormData(form);
+        var captionsContainer = document.getElementById("captions");
+        var loadingIndicator = document.getElementById("loading");
+
+        captionsContainer.style.display = "none";
+        loadingIndicator.style.display = "block";
+
+        fetch("/predict", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            var captions = data.captions;
+
+            captionsContainer.innerHTML = "";
+            for (var i = 0; i < captions.length; i++) {
+              var p = document.createElement("p");
+              p.textContent = "Caption " + (i + 1) + ": " + captions[i];
+              captionsContainer.appendChild(p);
+            }
+
+            captionsContainer.style.display = "block";
+            loadingIndicator.style.display = "none";
+
+            var showCaptionsButton = document.createElement("button");
+            showCaptionsButton.textContent = "Show Other Captions";
+            showCaptionsButton.classList.add("show-captions-button");
+            showCaptionsButton.addEventListener("click", function () {
+              var captions = document.querySelectorAll("#captions p");
+              for (var i = 0; i < captions.length; i++) {
+                captions[i].style.display =
+                  captions[i].style.display === "none" ? "block" : "none";
+              }
+            });
+            captionsContainer.appendChild(showCaptionsButton);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            loadingIndicator.style.display = "none";
+          });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Image Captioning</h1>
+      <div class="form-input">
+        <div class="preview">
+          <img />
+        </div>
+        <form id="upload-form" onsubmit="generateCaptions(event)">
+          <label for="file-ip-1">Upload Image</label>
+          <input
+            type="file"
+            id="file-ip-1"
+            name="image"
+            accept="image/*"
+            onchange="showPreview(event);"
+          />
+          <button type="submit" class="generate-button">
+            Generate Captions
+          </button>
+        </form>
+        <div id="loading" style="display: none">Loading...</div>
+        <div id="captions"></div>
+      </div>
+    </div>
+  </body>
+</html>
